@@ -6,7 +6,7 @@
 * Желтый сигнал подключается в PIN 5
 * Зеленый сигнал подключается в PIN 3
 
-![circuit](https://github.com/user-attachments/assets/5c47222a-9c5a-4ff1-b43f-26367eb6f3be)
+![circuit](https://github.com/user-attachments/assets/74ee5138-3229-4b0e-9925-7a844cd57456)
 
 
 ## Видео демонстрация работы
