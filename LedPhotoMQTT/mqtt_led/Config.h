@@ -1,14 +1,10 @@
-#include "Config.h"
-#include "WIFI.h"
-#include "MQTT.h"
+String ssidAP = "ESP_WIFI"; 
+String passwordAP = "ESP8266123"; 
 
-void setup() {
-    Serial.begin(115200);
-    WIFI_init(false);
-    MQTT_init();      
-    pinMode(led, OUTPUT); 
-}
+const char* ssidCLI = "iphone";    
+const char* passwordCLI = "qwertyui"; 
 
-void loop() {
-    mqtt_cli.loop(); 
-}
+const char* mqtt_broker = "broker.emqx.io";
+const int mqtt_port = 1883;
+
+const int led = 2;
