@@ -7,3 +7,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 2. [Light Sensor](./lightdetector) 
 
 ### 3. [Distributed Systems](./LedPhotoDistributedSerial)
+
+### 4. [LedPhotoMQTT](./LedPhotoMQTT)
