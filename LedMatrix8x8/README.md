@@ -1,5 +1,6 @@
-**Демонстрация**  
+### Демонстрация
 https://drive.google.com/file/d/1DpvR_ULHrfcgvBeAPoDEA7z3gn3TthTe/view?usp=sharing
+
 проводов с резисторами не хватило, поэтому пришлось на основании 4 на 4 делать 
 
 ### Описание
