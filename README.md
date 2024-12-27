@@ -13,3 +13,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 5. [LedMatrix](./ledmatrix)
 
 ### 6. [LedMatrix8x8](./LedMatrix8x8)
+
+### 7. [MQTT](./mqtt)
