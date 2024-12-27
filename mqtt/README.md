@@ -38,6 +38,6 @@
 
 Демонстрация работы доступна по ссылке:
 
-- [Работа](https://example.com/video1)
+- [Видео](https://drive.google.com/file/d/1Qhx42O8_8qF7ataRsIr7TCWWGO3ni3fw/view?usp=sharing)
 
 
