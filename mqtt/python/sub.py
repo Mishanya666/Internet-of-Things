@@ -2,10 +2,10 @@ import time
 import paho.mqtt.client as mqtt_client
 import serial
 
-broker = "test.mosquitto.org"
+broker = "test.mosquitto.org"  // Адрес MQTT брокера (можете выбрать любой)
 pub_id = "вставьте айди из паблишера"  
 
-ser = serial.Serial('COM10', 9600)  
+ser = serial.Serial('COM10', 9600)  // COM выбирайте взависимости от того какой он у платы
 
 client = mqtt_client.Client()
 client.connect(broker)
