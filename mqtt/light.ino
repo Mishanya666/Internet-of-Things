@@ -1,4 +1,4 @@
-const int ledPin = 13;  
+const int ledPin = 13;  // Пин для светодиода (смотрите GPIO вашей платы Arduino)
 String message = "";
 
 void setup() {
