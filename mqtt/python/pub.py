@@ -4,7 +4,7 @@ import serial
 import hashlib
 from uuid import getnode as get_mac
 
-broker = "test.mosquitto.org"
+broker = "test.mosquitto.org" // Адрес MQTT брокера (можете выбрать любой)
 
 h = hashlib.new('sha256')
 mac = get_mac()
