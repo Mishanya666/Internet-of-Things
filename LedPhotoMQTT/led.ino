@@ -1,14 +1,14 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "Tenda_05CE60";     // Имя Wi-Fi сети
+const char* ssid = "Tenda_05CE60";     // Имя Wi-Fi сети (вставьте свое)
 const char* password = "82266851";     // Пароль Wi-Fi сети
 const char* mqtt_server = "test.mosquitto.org"; // Адрес MQTT брокера
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-const int ledPin = 5; // Пин для светодиода (D1)
+const int ledPin = 5; // Пин для светодиода (D1) (смотрите GPIO)
 const char* topic = "sensor/light";   
 
 void setup_wifi() {
