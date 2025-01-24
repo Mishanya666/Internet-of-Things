@@ -1,4 +1,4 @@
-const int sensorPin = A0; //Выберете свой 
+const int sensorPin = A0; //Выбираете свой 
 
 void setup() {
   Serial.begin(9600);  
