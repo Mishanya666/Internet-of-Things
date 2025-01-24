@@ -12,7 +12,7 @@ h.update(str(mac).encode())
 pub_id = h.hexdigest()[:10]
 print(f"Generated pub_id: {pub_id}") 
 
-ser = serial.Serial('COM5', 9600)  
+ser = serial.Serial('COM5', 9600)  // COM выбирайте взависимости от того какой он у платы
 
 client = mqtt_client.Client()
 client.connect(broker)
