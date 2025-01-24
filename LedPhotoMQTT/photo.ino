@@ -3,7 +3,7 @@
 
 const char* ssid = "Tenda_05CE60";     // Имя Wi-Fi сети (вставьте свое имя сети)
 const char* password = "82266851";     // Пароль Wi-Fi сети (вставьте свой пароль)
-const char* mqtt_server = "test.mosquitto.org"; // Адрес MQTT брокера
+const char* mqtt_server = "test.mosquitto.org"; // Адрес MQTT брокера (можете выбрать любой)
 
 WiFiClient espClient;
 PubSubClient client(espClient);
