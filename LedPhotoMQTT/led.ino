@@ -8,7 +8,7 @@ const char* mqtt_server = "test.mosquitto.org"; // Адрес MQTT брокер�
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-const int ledPin = 5; // Пин для светодиода (D1) (смотрите GPIO)
+const int ledPin = 5; // Пин для светодиода (D1) (смотрите GPIO вашей платы Arduino)
 const char* topic = "sensor/light";   
 
 void setup_wifi() {
