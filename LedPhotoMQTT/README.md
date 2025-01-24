@@ -41,4 +41,4 @@
 
 Демонстрация работы проекта доступна по ссылке:
 
-[Видео демонстрация](ссылка_на_видео)
+[Видео демонстрация](https://drive.google.com/file/d/1fByb6gSaC43mJ4gfk0KartrI2w0NDWcr/view?usp=sharing)
