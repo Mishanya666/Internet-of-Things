@@ -31,7 +31,7 @@ void loop() {
       while (digitalRead(BUTTON_PIN) == PRESSED) {
 
       }
-      hold_time = millis() - start_hold_time;
+      hold_time = millis() - press_time;
       Serial.print("Button held for: ");
       Serial.print(hold_time);
       Serial.println(" ms");
