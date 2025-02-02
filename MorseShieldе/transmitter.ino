@@ -12,7 +12,6 @@ ApplicationWindow {
         height: parent.height
         color: "#f4f0f8"
 
-        // Верхняя панель навигации
         Rectangle {
             height: 60
             width: parent.width
@@ -58,7 +57,6 @@ ApplicationWindow {
             }
         }
 
-        // Основной блок
         Column {
             spacing: 20
             anchors.top: parent.top
@@ -74,7 +72,6 @@ ApplicationWindow {
             Row {
                 spacing: 40
 
-                // Фильтры
                 Column {
                     spacing: 10
 
@@ -133,7 +130,6 @@ ApplicationWindow {
                 }
             }
 
-            // Таблица с данными
             Rectangle {
                 width: parent.width * 0.8
                 height: 300
@@ -184,7 +180,6 @@ ApplicationWindow {
                 }
             }
 
-            // Блок информации
             Rectangle {
                 width: parent.width * 0.8
                 height: 150
