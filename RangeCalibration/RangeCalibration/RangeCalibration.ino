@@ -4,24 +4,21 @@ long duration;
 float distance;
 const int irSensorPin = A0;
 int irValue;
-const int ledPin = 13;  // Встроенный светодиод на пине 13
+const int ledPin = 13;  
 
-// Переменные для отслеживания состояния калибровки
 int dataCount = 0;
-int maxDataCount = 50;  // Максимальное количество данных для калибровки
+int maxDataCount = 50; 
 
 void setup() {
   Serial.begin(9600);
   pinMode(trigPin, OUTPUT);
   pinMode(echoPin, INPUT);
   pinMode(irSensorPin, INPUT);
-  pinMode(ledPin, OUTPUT);  // Настроим светодиод на вывод
-
-  digitalWrite(ledPin, LOW);  // Начальный статус светодиода (выключен)
+  pinMode(ledPin, OUTPUT);  
+  digitalWrite(ledPin, LOW);
 }
 
 void loop() {
-  // Получаем данные с ультразвукового сенсора
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
@@ -33,15 +30,12 @@ void loop() {
   // Получаем данные с инфракрасного сенсора
   irValue = analogRead(irSensorPin);
 
-  // Отправляем данные на ПК
   Serial.print(distance);
   Serial.print(",");
   Serial.println(irValue);
 
-  // Увеличиваем количество собранных данных
   dataCount++;
 
-  // Проверяем, достигли ли мы нужного количества данных
   if (dataCount >= maxDataCount) {
     // Если данные собраны, мигаем светодиодом
     blinkLED();
