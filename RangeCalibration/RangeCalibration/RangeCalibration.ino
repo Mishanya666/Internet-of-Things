@@ -1,14 +1,9 @@
-// Настройка пинов для ультразвукового датчика
 const int trigPin = 4;
 const int echoPin = 3;
 long duration;
 float distance;
-
-// Настройка пина для инфракрасного сенсора
 const int irSensorPin = A0;
 int irValue;
-
-// Настройка пина для светодиода
 const int ledPin = 13;  // Встроенный светодиод на пине 13
 
 // Переменные для отслеживания состояния калибровки
