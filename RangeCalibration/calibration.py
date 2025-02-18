@@ -23,7 +23,7 @@ def collect_data():
 
 
             if len(distances) >= 50:
-                print("Данные собраны, можно строить модель.")
+                print("Данные собраны.")
                 break
 
     return np.array(distances), np.array(ir_values)
