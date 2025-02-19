@@ -25,9 +25,8 @@ void loop() {
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
   duration = pulseIn(echoPin, HIGH);
-  distance = duration * 0.0344 / 2; // Расстояние в см
+  distance = duration * 0.0344 / 2; 
 
-  // Получаем данные с инфракрасного сенсора
   irValue = analogRead(irSensorPin);
 
   Serial.print(distance);
@@ -37,20 +36,18 @@ void loop() {
   dataCount++;
 
   if (dataCount >= maxDataCount) {
-    // Если данные собраны, мигаем светодиодом
     blinkLED();
-    dataCount = 0;  // Сбрасываем счетчик для нового сбора данных
+    dataCount = 0; 
   }
 
   delay(100);
 }
 
-// Функция для мигания светодиода
 void blinkLED() {
   for (int i = 0; i < 5; i++) {
-    digitalWrite(ledPin, HIGH);  // Включаем светодиод
-    delay(200);  // Задержка 200 мс
-    digitalWrite(ledPin, LOW);   // Выключаем светодиод
-    delay(200);  // Задержка 200 мс
+    digitalWrite(ledPin, HIGH);  
+    delay(200);  
+    digitalWrite(ledPin, LOW);   
+    delay(200);  
   }
 }
