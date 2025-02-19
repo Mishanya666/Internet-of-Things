@@ -25,3 +25,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 1. [BounceProcessing](./BounceProcessing)
 
 ### 2. [ButtonMatrix](./ButtonMatrix)
+
+### 3. [RangeCalibration](./RangeCalibration)
