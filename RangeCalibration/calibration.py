@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 import time
 
 
-ser = serial.Serial('COM4', 9600)  # Замените 'COM_PORT' на ваш порт
+ser = serial.Serial('COM4', 9600)  # Замените 'COM PORT' на ваш порт
 time.sleep(2)
 
 
