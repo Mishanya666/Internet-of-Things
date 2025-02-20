@@ -27,3 +27,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 2. [ButtonMatrix](./ButtonMatrix)
 
 ### 3. [RangeCalibration](./RangeCalibration)
+
+### 4. [H-bridge](./H-bridge)
