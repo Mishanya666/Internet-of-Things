@@ -29,3 +29,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 3. [RangeCalibration](./RangeCalibration)
 
 ### 4. [H-bridge](./H-bridge)
+
+### 6. [StateMachine](./StateMachine)
