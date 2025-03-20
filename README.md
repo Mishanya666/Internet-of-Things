@@ -33,3 +33,5 @@ This is a repository of homework on the subject of the Internet of Things.
 ### 5. [StateMachine](./StateMachine)
 
 ### 6. [MoovingCallibration](./MoovingCallibration)
+
+### 7. [I2C_chat]/(./I2C_chat)
