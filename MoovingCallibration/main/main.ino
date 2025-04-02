@@ -2,7 +2,7 @@
 
 const int DIR1 = 4, SPEED1 = 5, SPEED2 = 6, DIR2 = 7;
 
-SoftwareSerial BTSerial(10, 11); // RX, TX
+SoftwareSerial BTSerial(10, 11); 
 
 int speedLeft = 150, speedRight = 150;
 
