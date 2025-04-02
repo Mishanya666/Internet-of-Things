@@ -1,14 +1,10 @@
 #include <SoftwareSerial.h>
 
-// Пины моторов
 const int DIR1 = 4, SPEED1 = 5, SPEED2 = 6, DIR2 = 7;
 
 SoftwareSerial BTSerial(10, 11); // RX, TX
 
-// Переменные калибровки
-int dir1State = LOW, dir2State = LOW;
 int speedLeft = 150, speedRight = 150;
-int turn90Time = 500, turn180Time = 1000, turn270Time = 1500, turn360Time = 2000;
 
 void setup() {
     pinMode(DIR1, OUTPUT);
@@ -31,29 +27,20 @@ void loop() {
 
 void processCommand(char command) {
     switch (command) {
-        case '^': 
+        case 'L': 
             moveForward();
             break;
-        case 'v': 
+        case 'R': 
             moveBackward();
             break;
-        case '<':
+        case 'F':
             turnLeft();
             break;
-        case '>': 
+        case 'B': 
             turnRight();
             break;
-        case 'X': 
-            speedLeft = min(255, speedLeft + 10);
-            break;
-        case 'B': 
-            speedLeft = max(0, speedLeft - 10);
-            break;
-        case 'A': 
-            speedRight = min(255, speedRight + 10);
-            break;
-        case 'Y': 
-            speedRight = max(0, speedRight - 10);
+        case '0':  
+            stopMotors();
             break;
     }
 }
@@ -77,7 +64,6 @@ void turnLeft() {
     digitalWrite(DIR2, HIGH);
     analogWrite(SPEED1, speedLeft);
     analogWrite(SPEED2, speedRight);
-    delay(turn90Time);
 }
 
 void turnRight() {
@@ -85,5 +71,9 @@ void turnRight() {
     digitalWrite(DIR2, LOW);
     analogWrite(SPEED1, speedLeft);
     analogWrite(SPEED2, speedRight);
-    delay(turn90Time);
+}
+
+void stopMotors() {
+    analogWrite(SPEED1, 0);
+    analogWrite(SPEED2, 0);
 }
