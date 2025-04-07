@@ -1,9 +1,133 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 
+
 #define OLED_ADDRESS 0x3C
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_ADDRESS);
+
+const char* ssid = "iphone";        
+const char* password = "qwertyui"; 
+
+void setup() {
+  Serial.begin(115200);
+
+  // Инициализация экрана
+  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
+  display.clearDisplay();
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.setCursor(28, 20);
+  display.println("Connecting...");
+  display.display();
+
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  display.clearDisplay();
+  display.setCursor(20, 20);
+  display.println("Connected!");
+  display.setCursor(20, 40);
+  display.print("IP: ");
+  display.println(WiFi.localIP());
+  display.display();
+  delay(2000);
+
+  // Ожидание, чтобы увидеть сообщение на экране
+  display.clearDisplay();
+
+  // Отображение случайных эмоций после подключения
+  displayEmotion();
+}
+
+void loop() {
+  // Ваши другие задачи могут быть выполнены здесь
+}
+
+void displayEmotion() {
+  // Генерация случайного числа для выбора эмоции
+  int randomNum = random(1, 6);  // Случайное число от 1 до 5
+
+  if (randomNum == 1) {
+    regEyes();
+  } else if (randomNum == 2) {
+    heart();
+  } else if (randomNum == 3) {
+    carrotEyes();
+  } else if (randomNum == 4) {
+    sideEye();
+  } else if (randomNum == 5) {
+    sideEye();  // Можно добавить другие эмоции по аналогии
+  }
+}
+
+void regEyes() {
+  display.clearDisplay();
+  display.fillCircle(48, 32, 8, WHITE);
+  display.fillCircle(80, 32, 8, WHITE);
+  display.fillRect(48, 55, 32, 8, WHITE);
+  display.fillCircle(48, 58, 3, WHITE);
+  display.fillCircle(80, 58, 3, WHITE);
+  display.display();
+  delay(2000);
+}
+
+void heart() {
+  display.clearDisplay();
+  int x1 = 44;
+  int y1 = 27;
+  int radius1 = 10;
+  display.fillTriangle(x1 - radius1, y1, x1, y1 + radius1, x1 + radius1, y1, WHITE);
+  display.fillCircle(x1 - 5, y1, 5.5, WHITE);
+  display.fillCircle(x1 + 5, y1, 5.5, WHITE);
+  
+  int x2 = 84;
+  int y2 = 27;
+  int radius2 = 10;
+  display.fillTriangle(x2 - radius2, y2, x2, y2 + radius2, x2 + radius2, y2, WHITE);
+  display.fillCircle(x2 - 5, y2, 5.5, WHITE);
+  display.fillCircle(x2 + 5, y2, 5.5, WHITE);
+  
+  display.fillCircle(64, 50, 12, WHITE);
+  display.fillRect(0, 38, 128, 12, BLACK);  // Скрыть верхнюю часть улыбки
+  display.display();
+  delay(2000);
+}
+
+void carrotEyes() {
+  display.clearDisplay();
+  int centerX = 42;
+  int centerY = 32;
+  int lineLength = 10;
+  display.drawLine(centerX - lineLength, centerY + lineLength, centerX, centerY - lineLength, WHITE);
+  display.drawLine(centerX, centerY - lineLength, centerX + lineLength, centerY + lineLength, WHITE);
+
+  int centerXl = 90;
+  int centerYl = 32;
+  display.drawLine(centerXl - lineLength, centerYl + lineLength, centerXl, centerYl - lineLength, WHITE);
+  display.drawLine(centerXl, centerYl - lineLength, centerXl + lineLength, centerYl + lineLength, WHITE);
+  
+  display.fillCircle(64, 50, 12, WHITE);
+  display.fillRect(0, 38, 128, 12, BLACK);
+  display.display();
+  delay(2000);
+}
+
+void sideEye() {
+  display.clearDisplay();
+  display.fillCircle(48, 32, 8, WHITE);
+  display.fillCircle(80, 32, 8, WHITE);
+  display.fillRect(48, 55, 32, 8, WHITE);
+  display.fillCircle(48, 58, 3, WHITE);
+  display.fillCircle(80, 58, 3, WHITE);
+  display.display();
+  delay(2000);
+}
+
 
 void setup() {
   display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
@@ -21,31 +145,6 @@ void setup() {
   wakeUp();
 }
 
-void loop() {
-
-  int randomNum = random(5);
-
-  if (randomNum == 1) {
-    regEyes();
-    randomNum = random(5);
-  }
-  if (randomNum == 2) {
-    heart();
-    randomNum = random(5);
-  }
-  if (randomNum == 3) {
-    carrotEyes();
-    randomNum = random(5);
-  }
-  if (randomNum == 4) {
-    sideEye();
-    randomNum = random(5);
-  }
-  if (randomNum == 5) {
-    sideEye();
-    randomNum = random(5);
-  }
-}
 
 void sleep() {
   display.clearDisplay();
