@@ -12,7 +12,6 @@ const char* password = "qwertyui";
 void setup() {
   Serial.begin(115200);
 
-  // Инициализация экрана
   display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
   display.clearDisplay();
   display.setTextSize(2);
@@ -37,20 +36,19 @@ void setup() {
   display.display();
   delay(2000);
 
-  // Ожидание, чтобы увидеть сообщение на экране
+
   display.clearDisplay();
 
-  // Отображение случайных эмоций после подключения
   displayEmotion();
 }
 
 void loop() {
-  // Ваши другие задачи могут быть выполнены здесь
+ 
 }
 
 void displayEmotion() {
   // Генерация случайного числа для выбора эмоции
-  int randomNum = random(1, 6);  // Случайное число от 1 до 5
+  int randomNum = random(1, 6);  
 
   if (randomNum == 1) {
     regEyes();
@@ -61,7 +59,7 @@ void displayEmotion() {
   } else if (randomNum == 4) {
     sideEye();
   } else if (randomNum == 5) {
-    sideEye();  // Можно добавить другие эмоции по аналогии
+    sideEye();  
   }
 }
 
