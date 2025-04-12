@@ -1,7 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
 
-
 #define OLED_ADDRESS 0x3C
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_ADDRESS);
