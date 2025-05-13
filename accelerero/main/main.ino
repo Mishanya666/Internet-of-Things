@@ -34,7 +34,7 @@ void loop() {
 
   if (abs(event.acceleration.z) < 0.2) {
     digitalWrite(ledPin, HIGH); 
-    Serial.println("Невесомость обнаружена!");
+    Serial.println("Невесомость обнаружена!(светодиод горит)");
   } else {
     digitalWrite(ledPin, LOW); 
   }
