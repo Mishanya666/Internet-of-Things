@@ -8,9 +8,8 @@ const int ledPin = 3;
 
 void setup() {
   Serial.begin(9600);
-
   if (!accel.begin()) {
-    Serial.println("ADXL345 не найден! Проверь подключение.");
+    Serial.println("ADXL345 не найден!(Либо он сгорел)");
     while (1); 
   }
 
@@ -35,7 +34,7 @@ void loop() {
 
   if (abs(event.acceleration.z) < 0.2) {
     digitalWrite(ledPin, HIGH); 
-    Serial.println("Невесомость! Светодиод включен.");
+    Serial.println("Невесомость обнаружена!");
   } else {
     digitalWrite(ledPin, LOW); 
   }
