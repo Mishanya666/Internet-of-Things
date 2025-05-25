@@ -46,7 +46,7 @@ void loop() {
 }
 
 void displayEmotion() {
-  // Генерация случайного числа для выбора эмоции
+
   int randomNum = random(1, 6);  
 
   if (randomNum == 1) {
@@ -90,7 +90,7 @@ void heart() {
   display.fillCircle(x2 + 5, y2, 5.5, WHITE);
   
   display.fillCircle(64, 50, 12, WHITE);
-  display.fillRect(0, 38, 128, 12, BLACK);  // Скрыть верхнюю часть улыбки
+  display.fillRect(0, 38, 128, 12, BLACK);  
   display.display();
   delay(2000);
 }
@@ -301,7 +301,7 @@ void wakeUp() {
   delay(50);
 }
 
-void regEyes() {  //Regular eyes with Blinking
+void regEyes() {  
   // eyes
   display.clearDisplay();
   display.fillCircle(48, 32, 8, WHITE);
