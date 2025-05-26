@@ -4,9 +4,7 @@
 #define OLED_ADDRESS 0x3C
 
 Adafruit_SSD1306 display(128, 64, &Wire, OLED_ADDRESS);
-
-const char* ssid = "iphone";        
-const char* password = "qwertyui"; 
+ 
 
 void setup() {
   Serial.begin(115200);
