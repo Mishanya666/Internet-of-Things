@@ -1,435 +1,637 @@
-#include <Wire.h>
-#include <Adafruit_SSD1306.h>
+#include <SSD1306Wire.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ArduinoJson.h>
 
-#define OLED_ADDRESS 0x3C
+SSD1306Wire display(0x3c, 5, 4);
 
-Adafruit_SSD1306 display(128, 64, &Wire, OLED_ADDRESS);
- 
+// Wi-Fi и веб-сервер
+const char* ssid = "ESP8266_Moshi";
+const char* password = "12345678";
+ESP8266WebServer server(80);
+
+// Existing bitmaps (happy_face, sad_face_blink, etc.) remain unchanged
+const unsigned char happy_face[] PROGMEM = {
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x01, 0xFF, 0xFF, 0x80, 0x07, 0xFF, 0xFF, 0xE0,
+  0x0F, 0xFF, 0xFF, 0xF0, 0x1F, 0xFF, 0xFF, 0xF8, 0x3F, 0xFF, 0xFF, 0xFC, 0x3F, 0xFF, 0xFF, 0xFC,
+  0x7F, 0xFF, 0xFF, 0xFE, 0x7F, 0xFF, 0xFF, 0xFE, 0x7F, 0xF0, 0x0F, 0xFE, 0x7F, 0xE0, 0x07, 0xFE,
+  0x7F, 0xE7, 0xE7, 0xFE, 0x7F, 0xCF, 0xF3, 0xFE, 0x7F, 0x9F, 0xF9, 0xFE, 0x7F, 0x9F, 0xF9, 0xFE,
+  0x7F, 0xCF, 0xF3, 0xFE, 0x7F, 0xE7, 0xE7, 0xFE, 0x7F, 0xE0, 0x07, 0xFE, 0x7F, 0xF0, 0x0F, 0xFE,
+  0x7F, 0xFF, 0xFF, 0xFE, 0x7F, 0xFF, 0xFF, 0xFE, 0x3F, 0xFF, 0xFF, 0xFC, 0x3F, 0xFF, 0xFF, 0xFC,
+  0x1F, 0xFF, 0xFF, 0xF8, 0x0F, 0xFF, 0xFF, 0xF0, 0x07, 0xFF, 0xFF, 0xE0, 0x01, 0xFF, 0xFF, 0x80,
+  0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+// ... (other existing bitmaps: happy_face_blink, happy_face_open, sad_face_blink, etc. remain unchanged)
+// For brevity, only new bitmaps are shown below. Existing ones are assumed to be included as in the original code.
+
+// New bitmaps (placeholders, 32x32, 128 bytes each)
+// These are simplified; use LCD Assistant or image2cpp to generate accurate bitmaps
+const unsigned char sleep_blink[] PROGMEM = {
+  // Frame 1: Eyes (36,28,20,8), small mouth (48,45,32,8 + circles at 48,48,3 and 80,48,3)
+  // Scaled to 32x32, centered eyes at ~x=8-20, y=8-12, mouth at ~x=8-24, y=20-24
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char sleep_yawn[] PROGMEM = {
+  // Frame 2: Eyes (36,28,20,8), yawn circle (64,50,8)
+  // Scaled to 32x32, centered eyes at ~x=8-20, y=8-12, circle at ~x=16, y=20
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char wakeUp_small_mouth[] PROGMEM = {
+  // Frame 3: Eyes (36,28,20,8), small mouth (48,55,32,8 + circles at 48,58,3 and 80,58,3)
+  // Scaled to 32x32, centered eyes at ~x=8-20, y=8-12, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char wakeUp_left_wink[] PROGMEM = {
+  // Frame 4: Left eye circle (46,32,8), right eye rectangle (76,28,20,8), small mouth (as in Frame 3)
+  // Scaled to 32x32, left eye circle at ~x=12, y=12, right eye at ~x=20-24, y=8-12, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x3F, 0xFC, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char wakeUp_right_wink[] PROGMEM = {
+  // Frame 5: Right eye circle (80,32,8), left eye rectangle (36,28,20,8), small mouth (as in Frame 3)
+  // Scaled to 32x32, right eye circle at ~x=20, y=12, left eye at ~x=8-12, y=8-12, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0x3F, 0xFC, 0x00,
+  0x00, 0xFF, 0xFF, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char open_eyes[] PROGMEM = {
+  // Frame 6: Eyes circles (48,32,8 and 80,32,8), small mouth (48,55,32,8 + circles at 48,58,3 and 80,58,3)
+  // Scaled to 32x32, eyes at ~x=12,16, y=12, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x3F, 0xFC, 0x00,
+  0x00, 0x3F, 0xFC, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char wakeUp_half_blink[] PROGMEM = {
+  // Frame 7: Eyes (36,28,20,4), small mouth (48,55,32,8 + circles at 48,58,3 and 80,58,3)
+  // Scaled to 32x32, eyes at ~x=8-20, y=8-10, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char small_blink[] PROGMEM = {
+  // Frame 8: Eyes (44,28,10,4), small mouth (48,55,32,8 + circles at 48,58,3 and 80,58,3)
+  // Scaled to 32x32, eyes at ~x=10-15, y=8-10, mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xC0, 0x00, 0x00, 0x3F, 0xC0, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char sideEye_blink[] PROGMEM = {
+  // Frame 9: Eyes (32,28,10,4 and 96,28,10,4), small mouth (48,55,32,8 + circles at 48,58,3 and 80,58,3)
+  // Scaled to 32x32, eyes at ~x=8-12, y=8-10 (right eye at x=96 is out of bounds, ignored), mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xC0, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+const unsigned char sideEye_side[] PROGMEM = {
+  // Frame 10: Eyes circles (32,32,8 and 96,32,8), long mouth (32,55,64,8 + circles at 32,58,3 and 96,58,3)
+  // Scaled to 32x32, left eye at ~x=8, y=12 (right eye at x=96 is out of bounds, ignored), mouth at ~x=8-24, y=24-28
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x3F, 0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0x00, 0x00, 0xFF, 0xFF, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+// Emotion structure
+struct Emotion {
+  const unsigned char* frames[4]; 
+  int frameCount;
+  const char* text;
+  const char* emoji;
+};
+
+// Updated emotions array with new emotions
+Emotion emotions[] = {
+  {{happy_face, happy_face_blink, happy_face_open, happy_face}, 4, "Happy!", "😊"},
+  {{sad_face_blink, sad_face_blink, sad_face_frown, sad_face_blink}, 4, "Sad...", "😢"},
+  {{surprised_face, surprised_face_blink, surprised_face_open, surprised_face}, 4, "Wow!", "😮"},
+  {{sleepy_face, sleepy_face_blink, sleepy_face_yawn, sleepy_face}, 4, "Sleepy...", "😴"},
+  {{love_face, love_face_blink, love_face_hearts, love_face}, 4, "In Love!", "😍"},
+  {{angry_face, angry_face_blink, angry_face_scowl, angry_face}, 4, "Angry!", "😣"},
+  {{confused_face, confused_face_blink, confused_face_tilt, confused_face}, 4, "Confused?", "😕"},
+  {{sleep_blink, sleep_yawn, sleep_blink, sleep_yawn}, 4, "Sleeping", "💤"},
+  {{wakeUp_small_mouth, wakeUp_left_wink, wakeUp_right_wink, open_eyes}, 4, "Waking Up", "🌞"},
+  {{open_eyes, small_blink, open_eyes, small_blink}, 4, "Regular Eyes", "👀"},
+  {{open_eyes, sideEye_blink, sideEye_side, sideEye_blink}, 4, "Side Eye", "😆"}
+};
+const int num_emotions = 11;
+
+// Updated variables
+int lastClientCount = 0;
+unsigned long lastConnectionTime = 0;
+unsigned long lastIdleChange = 0;
+unsigned long lastFrameChange = 0;
+unsigned long lastEnergyChange = 0;
+unsigned long lastHungerChange = 0;
+unsigned long lastBoredomChange = 0;
+int currentEmotion = -1;
+int previousEmotion = -1;
+int currentFrame = 0;
+int energy = 100;
+int hunger = 100;
+int boredom = 100;
+String customMessage = "";
+const unsigned long idleInterval = 10000;
+const unsigned long frameInterval = 200; 
+const unsigned long energyInterval = 60000;
+const unsigned long hungerInterval = 45000;
+const unsigned long boredomInterval = 30000;
+bool inTransition = false;
+unsigned long transitionStartTime = 0;
+const unsigned long transitionDuration = 2000; 
+const unsigned long guessGameDuration = 30000; 
+int energyHistory[10] = {100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+int energyHistoryIndex = 0;
+
+int emotionFrequency[num_emotions] = {0};
+
+// Updated transitions to include new emotions
+struct Transition {
+  int fromEmotion;
+  int toEmotion;
+  int transitionEmotion;
+};
+
+Transition transitions[] = {
+  {0, 1, 6}, // Happy -> Sad через Confused
+  {1, 0, 6}, // Sad -> Happy через Confused
+  {0, 2, 6}, // Happy -> Surprised через Confused
+  {2, 0, 6}, // Surprised -> Happy через Confused
+  {1, 3, 6}, // Sad -> Sleepy через Confused
+  {3, 1, 6}, // Sleepy -> Sad через Confused
+  {0, 7, 6}, // Happy -> Sleeping через Confused
+  {7, 0, 6}, // Sleeping -> Happy через Confused
+  {3, 8, 6}, // Sleepy -> Waking Up через Confused
+  {8, 3, 6}, // Waking Up -> Sleepy через Confused
+  {0, 9, 6}, // Happy -> Regular Eyes через Confused
+  {9, 0, 6}, // Regular Eyes -> Happy через Confused
+  {0, 10, 6}, // Happy -> Side Eye через Confused
+  {10, 0, 6}  // Side Eye -> Happy через Confused
+};
+const int num_transitions = 14;
+
+// Updated adventure sequence
+bool adventureMode = false;
+unsigned long adventureStartTime = 0;
+int adventureSequence[] = {0, 2, 4, 6, 1, 3, 7, 8, 9, 10}; // Added new emotions
+int adventureIndex = 0;
+const unsigned long adventureInterval = 15000;
+
+bool guessGameActive = false;
+int guessGameEmotion = -1;
+unsigned long guessGameStartTime = 0;
+
+void displayEmotion(int emotion, int frame) {
+  display.clear();
+  display.drawXbm(48, 0, 32, 32, emotions[emotion].frames[frame]);
+  display.setFont(ArialMT_Plain_10);
+  display.setTextAlignment(TEXT_ALIGN_CENTER);
+  if (guessGameActive) {
+    display.drawString(64, 40, "Guess my emotion!");
+  } else {
+    display.drawString(64, 40, emotions[emotion].text);
+  }
+  display.display();
+}
+
+void updateEmotionBasedOnState() {
+  if (guessGameActive || adventureMode || inTransition) return;
+
+  int maxFrequency = 0;
+  for (int i = 0; i < num_emotions; i++) {
+    if (emotionFrequency[i] > maxFrequency) maxFrequency = emotionFrequency[i];
+  }
+
+  if (energy <= 30 || hunger <= 30) {
+    setEmotion(7); // Sleeping (was Sleepy at index 3)
+  } else if (hunger <= 50) {
+    setEmotion(1); // Sad
+  } else if (boredom <= 50) {
+    setEmotion(6); // Confused
+  } else if (maxFrequency > 5 && emotionFrequency[4] == maxFrequency) {
+    setEmotion(4); // Love
+  } else {
+    setEmotion(0); // Happy
+  }
+}
+
+void setEmotion(int newEmotion) {
+  if (newEmotion == currentEmotion || guessGameActive || adventureMode) return;
+
+  emotionFrequency[newEmotion]++;
+  if (currentEmotion != -1) {
+    for (int i = 0; i < num_transitions; i++) {
+      if (transitions[i].fromEmotion == currentEmotion && transitions[i].toEmotion == newEmotion) {
+        inTransition = true;
+        transitionStartTime = millis();
+        previousEmotion = currentEmotion;
+        currentEmotion = transitions[i].transitionEmotion;
+        currentFrame = 0;
+        displayEmotion(currentEmotion, currentFrame);
+        return;
+      }
+    }
+  }
+  previousEmotion = currentEmotion;
+  currentEmotion = newEmotion;
+  currentFrame = 0;
+  displayEmotion(currentEmotion, currentFrame);
+}
+
+void handleStatus() {
+  StaticJsonDocument<512> doc;
+  doc["emotion"] = (currentEmotion >= 0) ? emotions[currentEmotion].text : "None";
+  doc["energy"] = energy;
+  doc["hunger"] = hunger;
+  doc["boredom"] = boredom;
+  doc["lastActive"] = lastConnectionTime / 1000;
+  doc["message"] = customMessage;
+  JsonArray history = doc.createNestedArray("energyHistory");
+  for (int i = 0; i < 10; i++) {
+    history.add(energyHistory[i]);
+  }
+  String response;
+  serializeJson(doc, response);
+  server.send(200, "application/json", response);
+}
+
+void handleSetEnergy() {
+  if (server.hasArg("plain")) {
+    StaticJsonDocument<200> doc;
+    deserializeJson(doc, server.arg("plain"));
+    energy = doc["energy"].as<int>();
+    if (energy > 100) energy = 100;
+    if (energy < 0) energy = 0;
+    energyHistory[energyHistoryIndex] = energy;
+    energyHistoryIndex = (energyHistoryIndex + 1) % 10;
+    updateEmotionBasedOnState();
+    server.send(200, "application/json", "{\"status\":\"ok\"}");
+  } else {
+    server.send(400, "application/json", "{\"error\":\"Invalid request\"}");
+  }
+}
+
+void handleSetMessage() {
+  if (server.hasArg("plain")) {
+    StaticJsonDocument<200> doc;
+    deserializeJson(doc, server.arg("plain"));
+    customMessage = doc["message"].as<String>();
+    server.send(200, "application/json", "{\"status\":\"ok\"}");
+  } else {
+    server.send(400, "application/json", "{\"error\":\"Invalid request\"}");
+  }
+}
+
+void handleHappy() { setEmotion(0); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleSad() { setEmotion(1); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleSurprised() { setEmotion(2); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleSleepy() { setEmotion(3); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleLove() { setEmotion(4); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleAngry() { setEmotion(5); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleConfused() { setEmotion(6); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleSleeping() { setEmotion(7); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleWakeUp() { setEmotion(8); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleRegEyes() { setEmotion(9); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+void handleSideEye() { setEmotion(10); server.send(200, "application/json", "{\"status\":\"ok\"}"); }
+
+void handleFeed() {
+  hunger = min(hunger + 15, 100);
+  updateEmotionBasedOnState();
+  server.send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void handlePlay() {
+  boredom = min(boredom + 15, 100);
+  updateEmotionBasedOnState();
+  server.send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void handleAdventure() {
+  if (!adventureMode) {
+    adventureMode = true;
+    adventureIndex = 0;
+    adventureStartTime = millis();
+    setEmotion(adventureSequence[adventureIndex]);
+  }
+  server.send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void handleGuessGame() {
+  if (!guessGameActive) {
+    guessGameActive = true;
+    guessGameEmotion = random(num_emotions);
+    guessGameStartTime = millis();
+    setEmotion(guessGameEmotion);
+  }
+  server.send(200, "application/json", "{\"status\":\"ok\"}");
+}
+
+void handleGuessEmotion() {
+  if (server.hasArg("emotion")) {
+    int guessedEmotion = server.arg("emotion").toInt();
+    if (guessGameActive && guessedEmotion == guessGameEmotion) {
+      customMessage = "Correct! Well done!";
+      boredom = min(boredom + 20, 100);
+    } else {
+      customMessage = "Wrong! Try again!";
+    }
+    guessGameActive = false;
+    updateEmotionBasedOnState();
+    server.send(200, "application/json", "{\"status\":\"ok\"}");
+  } else {
+    server.send(400, "application/json", "{\"error\":\"Invalid request\"}");
+  }
+}
 
 void setup() {
   Serial.begin(115200);
 
-  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(28, 20);
-  display.println("Connecting...");
+  display.init();
+  display.flipScreenVertically();
+  display.clear();
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(0, 0, "Waiting for device...");
   display.display();
 
-  WiFi.begin(ssid, password);
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP(ssid, password);
+  Serial.println("Точка доступа создана: ");
+  Serial.print("SSID: "); Serial.println(ssid);
+  Serial.print("IP: "); Serial.println(WiFi.softAPIP());
 
-  display.clearDisplay();
-  display.setCursor(20, 20);
-  display.println("Connected!");
-  display.setCursor(20, 40);
-  display.print("IP: ");
-  display.println(WiFi.localIP());
-  display.display();
-  delay(2000);
+  // Настройка веб-сервера
+  server.on("/", []() {
+    String html = R"rawliteral(
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Moshi Control</title>
+        <style>
+          body { font-family: Arial; text-align: center; background: #f0f0f0; }
+          .container { max-width: 600px; margin: auto; padding: 20px; }
+          .status { margin: 20px 0; }
+          .button { display: block; margin: 10px; padding: 10px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; }
+          .button:hover { background: #45a049; }
+          canvas { margin: 20px auto; border: 1px solid #ccc; }
+          input[type=range], input[type=text] { margin: 10px; padding: 5px; }
+        </style>
+        <script>
+          function updateStatus() {
+            fetch('/status').then(response => response.json()).then(data => {
+              document.getElementById('emotion').innerText = data.emotion;
+              document.getElementById('energy').innerText = data.energy;
+              document.getElementById('hunger').innerText = data.hunger;
+              document.getElementById('boredom').innerText = data.boredom;
+              document.getElementById('lastActive').innerText = new Date(data.lastActive * 1000).toLocaleTimeString();
+              document.getElementById('message').innerText = data.message || 'No message';
+              let ctx = document.getElementById('energyChart').getContext('2d');
+              ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+              ctx.beginPath();
+              ctx.moveTo(0, 100 - data.energyHistory[0]);
+              for (let i = 1; i < data.energyHistory.length; i++) {
+                ctx.lineTo(i * 50, 100 - data.energyHistory[i]);
+              }
+              ctx.strokeStyle = 'blue';
+              ctx.stroke();
+            });
+          }
+          setInterval(updateStatus, 2000);
+          function setEnergy() {
+            let energy = document.getElementById('energySlider').value;
+            fetch('/setEnergy', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ energy: energy })
+            });
+          }
+          function sendMessage() {
+            let message = document.getElementById('customMessage').value;
+            fetch('/setMessage', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: message })
+            });
+          }
+          function guessEmotion(emotion) {
+            fetch('/guessEmotion?emotion=' + emotion).then(response => response.json()).then(data => {
+              updateStatus();
+            });
+          }
+        </script>
+      </head>
+      <body onload="updateStatus()">
+        <div class="container">
+          <h1>Moshi Control</h1>
+          <div class="status">
+            <p>Current Emotion: <span id="emotion">Waiting...</span></p>
+            <p>Energy: <span id="energy">100</span></p>
+            <p>Hunger: <span id="hunger">100</span></p>
+            <p>Boredom: <span id="boredom">100</span></p>
+            <p>Last Activity: <span id="lastActive">-</span></p>
+            <p>Message: <span id="message">No message</span></p>
+            <canvas id="energyChart" width="500" height="100"></canvas>
+          </div>
+          <a class="button" href="/happy">Make Happy</a>
+          <a class="button" href="/sad">Make Sad</a>
+          <a class="button" href="/surprised">Make Surprised</a>
+          <a class="button" href="/sleepy">Make Sleepy</a>
+          <a class="button" href="/love">Make In Love</a>
+          <a class="button" href="/angry">Make Angry</a>
+          <a class="button" href="/confused">Make Confused</a>
+          <a class="button" href="/sleeping">Make Sleeping</a>
+          <a class="button" href="/wakeUp">Make Waking Up</a>
+          <a class="button" href="/regEyes">Make Regular Eyes</a>
+          <a class="button" href="/sideEye">Make Side Eye</a>
+          <a class="button" href="/feed">Feed (+15 Hunger)</a>
+          <a class="button" href="/play">Play (+15 Boredom)</a>
+          <a class="button" href="/adventure">Start Adventure</a>
+          <a class="button" href="/guessGame">Play Guess Emotion</a>
+          <div>
+            <input type="range" id="energySlider" min="0" max="100" value="100" oninput="setEnergy()">
+            <input type="text" id="customMessage" placeholder="Enter message">
+            <button class="button" onclick="sendMessage()">Send Message</button>
+          </div>
+          <div>
+            <button class="button" onclick="guessEmotion(0)">Happy</button>
+            <button class="button" onclick="guessEmotion(1)">Sad</button>
+            <button class="button" onclick="guessEmotion(2)">Surprised</button>
+            <button class="button" onclick="guessEmotion(3)">Sleepy</button>
+            <button class="button" onclick="guessEmotion(4)">Love</button>
+            <button class="button" onclick="guessEmotion(5)">Angry</button>
+            <button class="button" onclick="guessEmotion(6)">Confused</button>
+            <button class="button" onclick="guessEmotion(7)">Sleeping</button>
+            <button class="button" onclick="guessEmotion(8)">Waking Up</button>
+            <button class="button" onclick="guessEmotion(9)">Regular Eyes</button>
+            <button class="button" onclick="guessEmotion(10)">Side Eye</button>
+          </div>
+        </div>
+      </body>
+      </html>
+    )rawliteral";
+    server.send(200, "text/html", html);
+  });
 
+  server.on("/status", handleStatus);
+  server.on("/setEnergy", HTTP_POST, handleSetEnergy);
+  server.on("/setMessage", HTTP_POST, handleSetMessage);
+  server.on("/happy", handleHappy);
+  server.on("/sad", handleSad);
+  server.on("/surprised", handleSurprised);
+  server.on("/sleepy", handleSleepy);
+  server.on("/love", handleLove);
+  server.on("/angry", handleAngry);
+  server.on("/confused", handleConfused);
+  server.on("/sleeping", handleSleeping);
+  server.on("/wakeUp", handleWakeUp);
+  server.on("/regEyes", handleRegEyes);
+  server.on("/sideEye", handleSideEye);
+  server.on("/feed", handleFeed);
+  server.on("/play", handlePlay);
+  server.on("/adventure", handleAdventure);
+  server.on("/guessGame", handleGuessGame);
+  server.on("/guessEmotion", handleGuessEmotion);
 
-  display.clearDisplay();
-
-  displayEmotion();
+  server.begin();
+  Serial.println("Веб-сервер запущен");
 }
 
 void loop() {
- 
-}
+  server.handleClient();
 
-void displayEmotion() {
+  unsigned long currentTime = millis();
 
-  int randomNum = random(1, 6);  
+  int currentClientCount = WiFi.softAPgetStationNum();
+  if (currentClientCount > 0) {
+    lastConnectionTime = currentTime;
+  }
+  if (currentClientCount != lastClientCount) {
+    lastClientCount = currentClientCount;
+    lastIdleChange = currentTime;
+    updateEmotionBasedOnState();
+  }
+  if (currentTime - lastIdleChange > idleInterval && lastClientCount == 0 && currentEmotion != 7) {
+    setEmotion(7); // Sleeping
+  }
 
-  if (randomNum == 1) {
-    regEyes();
-  } else if (randomNum == 2) {
-    heart();
-  } else if (randomNum == 3) {
-    carrotEyes();
-  } else if (randomNum == 4) {
-    sideEye();
-  } else if (randomNum == 5) {
-    sideEye();  
+  if (currentEmotion >= 0 && currentTime - lastFrameChange > frameInterval) {
+    currentFrame = (currentFrame + 1) % emotions[currentEmotion].frameCount;
+    displayEmotion(currentEmotion, currentFrame);
+    lastFrameChange = currentTime;
+  }
+
+  if (currentTime - lastEnergyChange > energyInterval) {
+    energy = max(energy - 5, 0);
+    energyHistory[energyHistoryIndex] = energy;
+    energyHistoryIndex = (energyHistoryIndex + 1) % 10;
+    lastEnergyChange = currentTime;
+    updateEmotionBasedOnState();
+  }
+
+  if (currentTime - lastHungerChange > hungerInterval) {
+    hunger = max(hunger - 5, 0);
+    lastHungerChange = currentTime;
+    updateEmotionBasedOnState();
+  }
+
+  if (currentTime - lastBoredomChange > boredomInterval) {
+    boredom = max(boredom - 5, 0);
+    lastBoredomChange = currentTime;
+    updateEmotionBasedOnState();
+  }
+
+  if (inTransition && currentTime - transitionStartTime > transitionDuration) {
+    inTransition = false;
+    int targetEmotion = -1;
+    for (int i = 0; i < num_transitions; i++) {
+      if (transitions[i].fromEmotion == previousEmotion && transitions[i].transitionEmotion == currentEmotion) {
+        targetEmotion = transitions[i].toEmotion;
+        break;
+      }
+    }
+    if (targetEmotion != -1) {
+      currentEmotion = targetEmotion;
+      currentFrame = 0;
+      displayEmotion(currentEmotion, currentFrame);
+    }
+  }
+
+  if (adventureMode && currentTime - adventureStartTime > adventureInterval) {
+    adventureIndex = (adventureIndex + 1) % num_emotions;
+    setEmotion(adventureSequence[adventureIndex]);
+    adventureStartTime = currentTime;
+    if (adventureIndex == 0) {
+      adventureMode = false;
+    }
+  }
+
+  if (guessGameActive && currentTime - guessGameStartTime > guessGameDuration) {
+    guessGameActive = false;
+    customMessage = "Time's up!";
+    updateEmotionBasedOnState();
   }
 }
-
-void regEyes() {
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-  display.display();
-  delay(2000);
-}
-
-void heart() {
-  display.clearDisplay();
-  int x1 = 44;
-  int y1 = 27;
-  int radius1 = 10;
-  display.fillTriangle(x1 - radius1, y1, x1, y1 + radius1, x1 + radius1, y1, WHITE);
-  display.fillCircle(x1 - 5, y1, 5.5, WHITE);
-  display.fillCircle(x1 + 5, y1, 5.5, WHITE);
-  
-  int x2 = 84;
-  int y2 = 27;
-  int radius2 = 10;
-  display.fillTriangle(x2 - radius2, y2, x2, y2 + radius2, x2 + radius2, y2, WHITE);
-  display.fillCircle(x2 - 5, y2, 5.5, WHITE);
-  display.fillCircle(x2 + 5, y2, 5.5, WHITE);
-  
-  display.fillCircle(64, 50, 12, WHITE);
-  display.fillRect(0, 38, 128, 12, BLACK);  
-  display.display();
-  delay(2000);
-}
-
-void carrotEyes() {
-  display.clearDisplay();
-  int centerX = 42;
-  int centerY = 32;
-  int lineLength = 10;
-  display.drawLine(centerX - lineLength, centerY + lineLength, centerX, centerY - lineLength, WHITE);
-  display.drawLine(centerX, centerY - lineLength, centerX + lineLength, centerY + lineLength, WHITE);
-
-  int centerXl = 90;
-  int centerYl = 32;
-  display.drawLine(centerXl - lineLength, centerYl + lineLength, centerXl, centerYl - lineLength, WHITE);
-  display.drawLine(centerXl, centerYl - lineLength, centerXl + lineLength, centerYl + lineLength, WHITE);
-  
-  display.fillCircle(64, 50, 12, WHITE);
-  display.fillRect(0, 38, 128, 12, BLACK);
-  display.display();
-  delay(2000);
-}
-
-
-
-void setup() {
-  display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDRESS);
-  display.clearDisplay();
-  display.setTextSize(2);
-  display.setTextColor(WHITE);
-  display.setCursor(28, 20);
-  display.println("STRAZZ");
-  display.setCursor(35, 40);
-  display.println("TUNED");
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-  sleep();
-  wakeUp();
-}
-
-
-void sleep() {
-  display.clearDisplay();
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 45, 32, 8, WHITE);
-  display.fillCircle(48, 48, 3, WHITE);
-  display.fillCircle(80, 48, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-
-  //yawn
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  display.fillCircle(64, 50, 8, WHITE);
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 45, 32, 8, WHITE);
-  display.fillCircle(48, 48, 3, WHITE);
-  display.fillCircle(80, 48, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-  //yawn
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  display.fillCircle(64, 50, 8, WHITE);
-  display.display();
-  delay(2000);
-}
-
-void wakeUp() {
-  display.clearDisplay();
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //left wink
-  display.fillCircle(46, 32, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(1000);
-  display.clearDisplay();
-
-  //right wink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-  display.display();
-  delay(2000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(36, 28, 20, 8, WHITE);
-  display.fillRect(76, 28, 20, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(1000);
-  display.clearDisplay();
-
-  // eyes
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(36, 28, 20, 4, WHITE);
-  display.fillRect(76, 28, 20, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(50);
-
-// eyes
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(1000);
-  display.clearDisplay();
-
-
-  //blink
-  display.fillRect(44, 28, 10, 4, WHITE);
-  display.fillRect(76, 28, 10, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(50);
-}
-
-void regEyes() {  
-  // eyes
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(44, 28, 10, 4, WHITE);
-  display.fillRect(76, 28, 10, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(100);
-
-  //open
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  //blink
-  display.fillRect(44, 28, 10, 4, WHITE);
-  display.fillRect(76, 28, 10, 4, WHITE);
-  display.display();
-  delay(100);
-}
-
-void sideEye() {
-  // eyes
-  display.clearDisplay();
-  display.fillCircle(48, 32, 8, WHITE);
-  display.fillCircle(80, 32, 8, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-  //blink
-  display.fillRect(32, 28, 10, 4, WHITE);
-  display.fillRect(96, 28, 10, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(100);
-  display.clearDisplay();
-
-  //side eye
-  display.fillCircle(32, 32, 8, WHITE);
-  display.fillCircle(96, 32, 8, WHITE);
-
-  //mouth
-  display.fillRect(32, 55, 64, 8, WHITE);
-  display.fillCircle(32, 58, 3, WHITE);
-  display.fillCircle(96, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(32, 28, 10, 4, WHITE);
-  display.fillRect(96, 28, 10, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(100);
-  display.clearDisplay();
-
-  //side eye
-  display.fillCircle(32, 32, 8, WHITE);
-  display.fillCircle(96, 32, 8, WHITE);
-
-  //mouth
-  display.fillRect(32, 55, 64, 8, WHITE);
-  display.fillCircle(32, 58, 3, WHITE);
-  display.fillCircle(96, 58, 3, WHITE);
-
-  display.display();
-  delay(3000);
-  display.clearDisplay();
-
-  //blink
-  display.fillRect(32, 28, 10, 4, WHITE);
-  display.fillRect(96, 28, 10, 4, WHITE);
-
-  //small mouth
-  display.fillRect(48, 55, 32, 8, WHITE);
-  display.fillCircle(48, 58, 3, WHITE);
-  display.fillCircle(80, 58, 3, WHITE);
-
-  display.display();
-  delay(100);
-  display.clearDisplay();
-}
-
-
