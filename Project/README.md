@@ -15,3 +15,6 @@
 7) Выбрать и установить ESP8266 boards.  
 
 8) В списке плат «Инструменты» — «Плата» появится семейство плат на ESP8266. Нужно выбрать Wemos D1 Mini. 
+
+
+видео демонстрация работы (https://drive.google.com/file/d/16creTXf00OQkNeDR1ig6wvjShiMGvzIW/view?usp=sharing)
