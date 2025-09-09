@@ -30,7 +30,7 @@ void setup() {
     // ждём пока пользователь введёт топик
   }
   Serial.readBytesUntil('\n', topic, sizeof(topic));
-  topic[sizeof(topic)-1] = '\0'; // защита
+  topic[sizeof(topic)-1] = '\0';
   Serial.print("Будем публиковать в: ");
   Serial.println(topic);
 
@@ -51,3 +51,4 @@ void loop() {
   Serial.println(lightLevel);
   delay(1000);  
 }
+
