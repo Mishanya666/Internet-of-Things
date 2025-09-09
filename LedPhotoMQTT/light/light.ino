@@ -42,7 +42,7 @@ void setup() {
     // ждём ввода
   }
   Serial.readBytesUntil('\n', topic, sizeof(topic));
-  topic[sizeof(topic)-1] = '\0'; // защита
+  topic[sizeof(topic)-1] = '\0'; 
   Serial.print("Подписываемся на: ");
   Serial.println(topic);
 
@@ -66,3 +66,4 @@ void loop() {
   }
   client.loop();
 }
+
