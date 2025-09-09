@@ -1,15 +1,15 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
-const char* ssid = "Tenda_05CE60";     // Имя Wi-Fi сети (вставьте свое имя сети)
-const char* password = "82266851";     // Пароль Wi-Fi сети (вставьте свой пароль)
-const char* mqtt_server = "test.mosquitto.org"; // Адрес MQTT брокера (можете выбрать любой)
+const char* ssid = "Tenda_05CE60";     
+const char* password = "82266851";     
+const char* mqtt_server = "test.mosquitto.org"; 
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-const int ledPin = 5; // Пин для светодиода (D1) (смотрите GPIO вашей платы Arduino)
-const char* topic = "sensor/light";   
+const int ledPin = 5; // D1
+char topic[50];       // сюда будем сохранять введённый топик
 
 void setup_wifi() {
   delay(10);
@@ -29,12 +29,23 @@ void callback(char* receivedTopic, byte* payload, unsigned int length) {
 
   int brightness = message.toInt(); 
   brightness = map(brightness, 0, 1023, 0, 1023); 
-  analogWrite(ledPin, brightness); // Управление светодиодом
+  analogWrite(ledPin, brightness); 
 }
 
 void setup() {
   pinMode(ledPin, OUTPUT);
   Serial.begin(115200);
+
+  // Ввод топика через Serial
+  Serial.println("Введите топик для подписки:");
+  while (Serial.available() == 0) {
+    // ждём ввода
+  }
+  Serial.readBytesUntil('\n', topic, sizeof(topic));
+  topic[sizeof(topic)-1] = '\0'; // защита
+  Serial.print("Подписываемся на: ");
+  Serial.println(topic);
+
   setup_wifi();
 
   client.setServer(mqtt_server, 1883);
